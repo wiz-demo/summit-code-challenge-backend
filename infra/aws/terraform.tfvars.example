@@ -1,0 +1,28 @@
+# =============================================================================
+# infra/aws — config template
+# =============================================================================
+# Copy to `terraform.tfvars` and fill in for your account:
+#   cp terraform.tfvars.example terraform.tfvars
+#
+# `terraform.tfvars` is gitignored. `environment` is NOT set here — the
+# Makefile passes it per-workspace via -var=environment=prod|dev.
+# =============================================================================
+
+# SCP-allowed region only (us-east-1 | us-east-2 | us-west-2)
+region = "us-east-1"
+
+# AWS SSO profile that maps to the target account
+aws_profile = "REPLACE_WITH_YOUR_AWS_PROFILE"
+
+# Required tags
+owner   = "REPLACE_WITH_OWNER_TAG"
+project = "code-challenge"
+
+# ECS cluster base name (the -dev suffix is added automatically for dev)
+ecs_cluster_name = "code-challenge"
+
+# Distinct VPC CIDR per environment (must not overlap)
+vpc_cidr_by_env = {
+  prod = "10.42.0.0/16"
+  dev  = "10.43.0.0/16"
+}
