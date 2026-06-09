@@ -20,7 +20,7 @@ subscription: **`TF-AWS-Connector-AgentWorkshop`**.
 
 ### The Target
 
-A deliberately vulnerable FastAPI service (`code-challenge-backend`) running on
+A deliberately vulnerable FastAPI service (`agent-workshop-backend`) running on
 ECS-on-EC2. It exposes two intentionally insecure endpoints:
 
 - `GET /api/users?username=…` — SQL injection (CWE-89)
@@ -41,7 +41,7 @@ injection — letting Wiz intelligence drive the attack instead of blind probing
 2. Filter:
    - Subscription = `TF-AWS-Connector-AgentWorkshop`
    - Type = `VIRTUAL_MACHINE`
-3. Open the EC2 host tagged `Name = code-challenge-backend`.
+3. Open the EC2 host tagged `Name = agent-workshop-backend`.
 
 Copy its **public IP / DNS** from the resource details. The app listens directly
 on **port 8000** — there is no load balancer in front of it.
@@ -53,7 +53,7 @@ on **port 8000** — there is no load balancer in front of it.
 
 Go to **Code Security → SAST Findings** and filter:
 
-- Repository = `wiz-demo/summit-code-challenge-backend`
+- Repository = `wiz-demo/summit-agent-workshop-backend`
 - Severity = HIGH, CRITICAL · Status = OPEN
 
 Wiz has already scanned the source and flagged three issues:
@@ -72,25 +72,25 @@ its OWASP mapping (A03:2021). You'll use this in Step 5.
 Confirm what is actually deployed from this repository.
 
 Go to **Code to Cloud → Correlations**, or ask Mika:
-*"Show me all cloud resources deployed from repository wiz-demo/summit-code-challenge-backend."*
+*"Show me all cloud resources deployed from repository wiz-demo/summit-agent-workshop-backend."*
 
-- **Image:** `800618367342.dkr.ecr.us-east-1.amazonaws.com/code-challenge-backend:<git-sha>`
+- **Image:** `800618367342.dkr.ecr.us-east-1.amazonaws.com/agent-workshop-backend:<git-sha>`
   (Terraform tags each image with the 12-character git short SHA of the deployed commit.)
-- **Cluster:** `code-challenge` (ECS on EC2)
-- **Capacity provider:** `code-challenge-ec2` (single-instance ASG)
-- **Task family:** `code-challenge-backend` (the container inside the task is named `backend`)
+- **Cluster:** `agent-workshop` (ECS on EC2)
+- **Capacity provider:** `agent-workshop-ec2` (single-instance ASG)
+- **Task family:** `agent-workshop-backend` (the container inside the task is named `backend`)
 
 ### Step 4 — Analyze Network Exposure
 
 Understand the path from the internet to the container before attacking.
 
 Go to **Security Graph → Network Exposure** and filter on
-Exposed Entity = `code-challenge-backend`, or ask Mika:
-*"Show me the network exposure path for container code-challenge-backend."*
+Exposed Entity = `agent-workshop-backend`, or ask Mika:
+*"Show me the network exposure path for container agent-workshop-backend."*
 
 ```
 Internet (0.0.0.0/0:8000)
-  → EC2 host security group (code-challenge-backend)
+  → EC2 host security group (agent-workshop-backend)
   → ECS task (bridge network, hostPort 8000)
   → container (backend)
 ```
@@ -132,7 +132,7 @@ curl --get "http://$ENDPOINT/api/users" \
 
 ### Step 6 — Correlate with Wiz Issues
 
-Go to **Issues → Risk Issues** and filter on `code-challenge-backend` (or search
+Go to **Issues → Risk Issues** and filter on `agent-workshop-backend` (or search
 "SQL Injection"). Wiz correlates the SAST finding with runtime exposure into a
 single prioritized issue:
 
@@ -146,7 +146,7 @@ CRITICAL — SQL Injection in a Publicly Exposed Container
 ### Step 7 — Assess the Blast Radius
 
 Use the Security Graph (or Mika: *"What other resources have access to the same
-data as code-challenge-backend?"*) to map what an attacker reaches next.
+data as agent-workshop-backend?"*) to map what an attacker reaches next.
 
 The SQLite data is in-process, but the **same host also exposes
 `GET /api/execute`** (command injection). Chaining SQL injection → command
@@ -167,7 +167,7 @@ the same subscription: `TF-AWS-Connector-AgentWorkshop`.
 ### Step 1 — Red Agent: Automated Discovery & Exploitation
 
 Go to **Attack Surface → Red Agent** and open the results for
-`code-challenge-backend`.
+`agent-workshop-backend`.
 
 Review what the agent produced on its own:
 
