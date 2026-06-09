@@ -30,3 +30,37 @@ module "wiz" {
   rolename                  = var.wiz_role_name
   iam_policy_suffix         = var.iam_policy_suffix
 }
+
+# --- Tenant 2 -----------------------------------------------------------------
+
+# Tenant 2's tenant ID, used as the external-id bound to tenant 2's IAM role
+# trust policy so only this Wiz tenant can assume the role.
+data "wiz-v2_graphql_query" "me_t2" {
+  provider = wiz-v2.tenant2
+  query    = <<-EOQ
+    query {
+      viewerV2 {
+        tenant { id }
+      }
+    }
+  EOQ
+}
+
+locals {
+  tenant_id_2 = jsondecode(data.wiz-v2_graphql_query.me_t2.result).viewerV2.tenant.id
+}
+
+# Second customer IAM role for tenant 2, in the same AWS account. Distinct
+# rolename + iam_policy_suffix avoid collisions with the tenant-1 role.
+module "wiz_t2" {
+  source                    = "https://wizio-public.s3.amazonaws.com/deployment-v3/aws/terraform/2527/wiz-aws-native-terraform-terraform-module.zip"
+  external-id               = local.tenant_id_2
+  data-scanning             = true
+  lightsail-scanning        = false
+  eks-scanning              = false
+  remote-arn                = var.wiz_remote_arn_2
+  terraform-bucket-scanning = true
+  cloud-cost-scanning       = false
+  rolename                  = var.wiz_role_name_2
+  iam_policy_suffix         = var.iam_policy_suffix_2
+}
