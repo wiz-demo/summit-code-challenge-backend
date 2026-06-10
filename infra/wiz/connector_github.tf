@@ -1,19 +1,11 @@
 # =============================================================================
-# Wiz GitHub Connector
+# Wiz GitHub Connectors (Tenant 1 + Tenant 2)
 # =============================================================================
-# Self-contained: connector-specific variables, the resource, and outputs.
-#
-# Unlike the AWS connector, GitHub auth is self-contained (GitHub App ID +
-# private key), so this connector has NO wiz-iam dependency. It is provisioned
-# by the root module's `make apply-root` target.
+# GitHub auth is self-contained (GitHub App ID + private key), so these
+# connectors have NO wiz-iam dependency. Provisioned by `make apply-root`.
 # =============================================================================
 
 # --- Variables --------------------------------------------------------------
-
-variable "github_connector_name" {
-  description = "Display name for the Wiz GitHub connector shown in the Wiz UI."
-  type        = string
-}
 
 variable "github_app_id" {
   description = "GitHub App ID Wiz authenticates as. Found in the GitHub App's settings page."
@@ -38,40 +30,6 @@ variable "github_connector_name_t1" {
 variable "github_connector_name_t2" {
   description = "Display name for the tenant 2 Wiz GitHub connector shown in the Wiz UI."
   type        = string
-}
-
-# --- Resource ---------------------------------------------------------------
-
-resource "wiz-v2_generic_connector" "github" {
-  name = var.github_connector_name
-  type = "github"
-
-  auth_params = jsonencode({
-    serverType = "github.com"
-    apps = [{
-      id         = var.github_app_id
-      privateKey = file("${path.module}/${var.github_app_private_key_path}")
-    }]
-  })
-
-  extra_config = jsonencode({
-    scan = {
-      scheduled = {
-        enabled                        = true
-        gitHistoryScanningEnabled      = false
-        scanPublicRepositories         = true
-        scanPublicPersonalRepositories = true
-        modules = {
-          vulnerabilities     = { enabled = true }
-          data                = { enabled = true }
-          iac                 = { enabled = true }
-          secrets             = { enabled = true }
-          sast                = { enabled = true }
-          softwareSupplyChain = { enabled = true }
-        }
-      }
-    }
-  })
 }
 
 # --- Tenant 1 ---------------------------------------------------------------
@@ -155,16 +113,6 @@ resource "wiz-v2_generic_connector" "github_t2" {
 */
 
 # --- Outputs ----------------------------------------------------------------
-
-output "github_connector_id" {
-  description = "Wiz GitHub connector ID (visible in the Wiz UI)."
-  value       = wiz-v2_generic_connector.github.id
-}
-
-output "github_connector_name" {
-  description = "Wiz GitHub connector display name."
-  value       = wiz-v2_generic_connector.github.name
-}
 
 /* Tenant 1 GitHub connector outputs temporarily disabled.
 output "github_connector_id_t1" {

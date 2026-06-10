@@ -14,12 +14,6 @@ provider "aws" {
 }
 
 provider "wiz-v2" {
-  env           = var.wiz_env
-  client_id     = var.wiz_client_id
-  client_secret = var.wiz_client_secret
-}
-
-provider "wiz-v2" {
   alias         = "tenant1"
   env           = var.wiz_env_t1
   client_id     = var.wiz_client_id_t1

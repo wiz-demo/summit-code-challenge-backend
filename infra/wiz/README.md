@@ -1,14 +1,13 @@
 # Wiz Connectors (Terraform)
 
-Provisions Wiz connectors via the `wiz-v2` Terraform provider:
+Provisions Wiz connectors via the `wiz-v2` Terraform provider for two
+independent Wiz tenants scanning the same AWS account:
 
-- **AWS** connector targeting account `800618367342`, plus the IAM role Wiz
-  assumes to scan it (two-stage apply: IAM role first, then connector).
-- **GitHub** connector (GitHub App auth against github.com). Self-contained —
-  no IAM dependency; provisioned with the root module.
-- **Three Wiz tenants** — the stack provisions connectors for THREE separate
-  Wiz tenants scanning the same AWS account, configured via `_t1` and `_t2`
-  suffixed variables in `terraform.tfvars`.
+- **AWS** connectors targeting account `800618367342`, plus the IAM roles Wiz
+  assumes to scan it (two-stage apply: IAM roles first, then connectors).
+- **GitHub** connectors (GitHub App auth against github.com). Self-contained —
+  no IAM dependency; provisioned with the root module. Currently disabled for
+  both tenants (commented out in `connector_github.tf`).
 
 Adapted from the `terraform-test` reference repo.
 
@@ -46,11 +45,9 @@ make plan    # plan both
 make apply   # IAM first, then connector
 ```
 
-After apply, check the Wiz UI under Settings → Connectors. The original
-tenant's connectors (`TF-AWS-Connector-AgentWorkshop`,
-`TF-GitHub-Connector-AgentWorkshop`) should appear and start their first scan
-within a few minutes. Tenant 1 and Tenant 2 connectors (suffixed `-Tenant1`,
-`-Tenant2`) will appear in their respective Wiz UIs.
+After apply, Tenant 1 and Tenant 2 connectors (suffixed `-Tenant1`,
+`-Tenant2`) will appear in their respective Wiz UIs and start their first
+scan within a few minutes.
 
 ## Tear down
 
@@ -58,16 +55,11 @@ within a few minutes. Tenant 1 and Tenant 2 connectors (suffixed `-Tenant1`,
 make destroy   # destroys connector first, then IAM role
 ```
 
-## Three Wiz tenants
+## Two Wiz tenants
 
-The stack supports provisioning connectors for THREE separate Wiz tenants that
-scan the same AWS account (`800618367342`). This allows separate Wiz
-organizations to independently assess the same infrastructure.
-
-- **Original tenant** (primary) is configured via the base variables:
-  `wiz_client_id`, `wiz_client_secret`, `wiz_env`, `wiz_role_name`,
-  `iam_policy_suffix`, `wiz_remote_arn`, `connector_name`,
-  `github_connector_name`, and `project_name_dev`.
+The stack provisions connectors for TWO separate Wiz tenants that scan the
+same AWS account (`800618367342`). This allows separate Wiz organizations to
+independently assess the same infrastructure.
 
 - **Tenant 1** is configured via the `*_t1` variables: `wiz_client_id_t1`,
   `wiz_client_secret_t1`, `wiz_env_t1`, `wiz_role_name_t1`,
@@ -79,30 +71,25 @@ organizations to independently assess the same infrastructure.
   `iam_policy_suffix_t2`, `wiz_remote_arn_t2`, `connector_name_t2`,
   `github_connector_name_t2`, and `project_name_dev_t2`.
 
-The `wiz-iam` sub-project provisions ONE IAM role per tenant. All three roles
+The `wiz-iam` sub-project provisions ONE IAM role per tenant. Both roles
 live in the same AWS account, so they must have distinct names
-(`wiz_role_name`, `wiz_role_name_t1`, `wiz_role_name_t2`) and distinct policy
-suffixes (`iam_policy_suffix`, `iam_policy_suffix_t1`, `iam_policy_suffix_t2`).
-Each role trusts its respective Wiz data-center delegator ARN (`wiz_remote_arn`,
-`wiz_remote_arn_t1`, `wiz_remote_arn_t2`).
+(`wiz_role_name_t1`, `wiz_role_name_t2`) and distinct policy suffixes
+(`iam_policy_suffix_t1`, `iam_policy_suffix_t2`). Each role trusts its
+respective Wiz data-center delegator ARN (`wiz_remote_arn_t1`,
+`wiz_remote_arn_t2`).
 
-The tenant 1 and tenant 2 GitHub connectors reuse the original tenant's GitHub
-App (same `github_app_id` and PEM file). All connectors authenticate to
-github.com with the same credentials.
+Both GitHub connectors reuse the same GitHub App (`github_app_id` and PEM
+file). All connectors authenticate to github.com with the same credentials.
 
-Running `make apply` provisions all three tenants in a single run: IAM roles
-for all tenants first (via the `wiz-iam` sub-project), then connectors and
-projects for all tenants.
-
-Tenant 1 UI objects are suffixed `-Tenant1` and tenant 2 UI objects are
-suffixed `-Tenant2` to distinguish them from the original tenant.
+Running `make apply` provisions both tenants in a single run: IAM roles
+first (via the `wiz-iam` sub-project), then connectors and projects.
 
 ## Layout
 
 ```
 infra/wiz/
 ├── versions.tf, providers.tf, variables.tf      Root module
-├── connector_aws.tf                             wiz-v2_generic_connector resource
+├── connector_aws.tf                             wiz-v2_generic_connector resources
 ├── connector_github.tf                          wiz-v2_generic_connector (github)
 ├── project_dev.tf                               wiz-v2_project (dev environment)
 ├── terraform.tfvars.example                     Reference values (no secrets)
@@ -111,10 +98,10 @@ infra/wiz/
 └── wiz-iam/
     ├── versions.tf, providers.tf, variables.tf  Sub-module
     ├── main.tf                                  Wiz's published IAM module
-    └── outputs.tf                               Exposes role_arn, role_arn_t1, role_arn_t2
+    └── outputs.tf                               Exposes role_arn_t1, role_arn_t2
 ```
 
-The root module reads the IAM role ARN from `wiz-iam/terraform.tfstate` via
+The root module reads the IAM role ARNs from `wiz-iam/terraform.tfstate` via
 `terraform_remote_state`. This is a deliberate workaround for a `wiz-v2`
 provider bug where `customerRoleARN` referencing an unknown-after-apply value
 triggers an `auth_params_hash__` inconsistency error.

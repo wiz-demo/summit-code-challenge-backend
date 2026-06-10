@@ -1,5 +1,5 @@
 # =============================================================================
-# Wiz stack — config template
+# Wiz stack — config template (Tenant 1 + Tenant 2)
 # =============================================================================
 # Copy to `terraform.tfvars` and fill in:
 #   cp terraform.tfvars.example terraform.tfvars
@@ -9,41 +9,15 @@
 # consumed by BOTH the root module and the wiz-iam sub-project.
 # =============================================================================
 
-# =============================================================================
-# Original Tenant (default provider, no suffix)
-# =============================================================================
-
-# ----- Wiz service-account credentials -----
-# Generate at: Wiz Console > Settings > Service Accounts > Create Service Account
-wiz_client_id     = "REPLACE_WITH_YOUR_WIZ_CLIENT_ID"
-wiz_client_secret = "REPLACE_WITH_YOUR_WIZ_CLIENT_SECRET"
-# Wiz data center: typically `test` or `prod`
-wiz_env = "test"
-
-# ----- AWS target -----
+# ----- Shared: AWS target -----
 aws_region     = "us-east-1" # SCP-allowed: us-east-1 | us-east-2 | us-west-2
 aws_profile    = "REPLACE_WITH_YOUR_AWS_PROFILE"
 owner          = "REPLACE_WITH_OWNER_TAG"
 aws_account_id = "REPLACE_WITH_12_DIGIT_ACCOUNT_ID"
 
-# ----- AWS connector -----
-connector_name = "TF-AWS-Connector-AgentWorkshop"
-
-# ----- Wiz IAM role (wiz-iam sub-project) -----
-wiz_role_name     = "WizAccess-Role-AgentWorkshop"
-iam_policy_suffix = "-agentworkshop"
-# Provided by Wiz: the data-center role allowed to assume the customer role.
-wiz_remote_arn = "arn:aws:iam::229870817538:role/test-eu3-AssumeRoleDelegator"
-
-# ----- GitHub connector -----
-github_connector_name = "TF-GitHub-Connector-AgentWorkshop"
-# GitHub App ID (from the GitHub App settings page):
-github_app_id = "REPLACE_WITH_YOUR_GITHUB_APP_ID"
-# Path (relative to infra/wiz/) to the gitignored GitHub App private key PEM:
+# ----- Shared: GitHub App (reused by every GitHub connector) -----
+github_app_id               = "REPLACE_WITH_YOUR_GITHUB_APP_ID"
 github_app_private_key_path = "github-app.pem"
-
-# ----- Dev Wiz project -----
-project_name_dev = "TF-Project-Dev-AgentWorkshop"
 
 # =============================================================================
 # Tenant 1 — separate Wiz tenant connected to the SAME AWS account
@@ -61,10 +35,9 @@ iam_policy_suffix_t1 = "-agentworkshop-t1"
 # Provided by Wiz: tenant 1's data-center role allowed to assume the customer role.
 wiz_remote_arn_t1 = "REPLACE_WITH_TENANT1_ASSUME_ROLE_DELEGATOR_ARN"
 
-# ----- Tenant 1 connectors / project -----
+# ----- Tenant 1 connectors -----
 connector_name_t1        = "TF-AWS-Connector-AgentWorkshop-Tenant1"
 github_connector_name_t1 = "TF-GitHub-Connector-AgentWorkshop-Tenant1"
-project_name_dev_t1      = "TF-Project-Dev-AgentWorkshop-Tenant1"
 
 # =============================================================================
 # Tenant 2 — separate Wiz tenant connected to the SAME AWS account
@@ -82,7 +55,6 @@ iam_policy_suffix_t2 = "-agentworkshop-t2"
 # Provided by Wiz: tenant 2's data-center role allowed to assume the customer role.
 wiz_remote_arn_t2 = "REPLACE_WITH_TENANT2_ASSUME_ROLE_DELEGATOR_ARN"
 
-# ----- Tenant 2 connectors / project -----
+# ----- Tenant 2 connectors -----
 connector_name_t2        = "TF-AWS-Connector-AgentWorkshop-Tenant2"
 github_connector_name_t2 = "TF-GitHub-Connector-AgentWorkshop-Tenant2"
-project_name_dev_t2      = "TF-Project-Dev-AgentWorkshop-Tenant2"

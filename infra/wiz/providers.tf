@@ -18,18 +18,12 @@ provider "aws" {
 }
 
 # =============================================================================
-# Wiz v2 Provider Configuration
+# Wiz v2 Provider Configuration (Tenant 1 + Tenant 2)
 # =============================================================================
 #
 # Provider source: tf.app.wiz.io/wizsec/wiz-v2 (private registry).
 # `terraform login tf.app.wiz.io` may be required before first init, depending
 # on the registry's auth setup.
-
-provider "wiz-v2" {
-  env           = var.wiz_env
-  client_id     = var.wiz_client_id
-  client_secret = var.wiz_client_secret
-}
 
 provider "wiz-v2" {
   alias         = "tenant1"

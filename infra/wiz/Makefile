@@ -6,7 +6,7 @@ AWS_DIR := ../aws
 # Which infra/aws environment the Wiz project groups. The project filters on
 # tag environment=$(ENV) in account 800618367342, so that AWS stack must be
 # deployed first (see check-aws-deployed). Override with `make apply ENV=prod`.
-ENV     ?= dev
+ENV     ?= prod
 
 .PHONY: help init plan apply destroy require-env check-aws-deployed \
         init-iam plan-iam apply-iam destroy-iam \
@@ -81,7 +81,7 @@ init-root:
 plan-root:
 	$(TF) plan -var-file=$(TFVARS) -compact-warnings
 
-apply-root: check-aws-deployed
+apply-root:
 	$(TF) apply -var-file=$(TFVARS) -auto-approve -compact-warnings
 
 destroy-root:

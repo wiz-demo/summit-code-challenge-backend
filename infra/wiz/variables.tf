@@ -1,33 +1,6 @@
 # =============================================================================
-# Wiz Provider Variables
+# Wiz Provider Variables (Tenant 1 + Tenant 2)
 # =============================================================================
-
-variable "wiz_client_id" {
-  description = "Wiz service account client ID. Generate at Wiz Console > Settings > Service Accounts."
-  type        = string
-  sensitive   = true
-
-  validation {
-    condition     = length(var.wiz_client_id) > 0
-    error_message = "wiz_client_id must not be empty."
-  }
-}
-
-variable "wiz_client_secret" {
-  description = "Wiz service account client secret."
-  type        = string
-  sensitive   = true
-
-  validation {
-    condition     = length(var.wiz_client_secret) > 0
-    error_message = "wiz_client_secret must not be empty."
-  }
-}
-
-variable "wiz_env" {
-  description = "Wiz environment to target (test, prod, etc.)."
-  type        = string
-}
 
 # ----- Tenant 1 -----
 
