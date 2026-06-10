@@ -22,7 +22,7 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  name_suffix = var.environment == "prod" ? "" : "-${var.environment}"
+  name_suffix = "-061026${var.environment == "prod" ? "" : "-${var.environment}"}"
   # Tag value is the workshop-scoped form (ra-workshop-prod / ra-workshop-dev);
   # var.environment stays prod/dev for workspace, name suffix, and CIDR.
   environment_tag = "ra-workshop-${var.environment}"
